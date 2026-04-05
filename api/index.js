@@ -9,11 +9,11 @@ import updatePasswordRouter from './auth/update-password.js'
 
 // Resource routes
 import tasksRouter from './tasks/index.js'
-import taskByIdRouter from './tasks/[id].js'
+import taskByIdRouter from './tasks/_id.js'
 import projectsRouter from './projects/index.js'
-import projectByIdRouter from './projects/[id].js'
+import projectByIdRouter from './projects/_id.js'
 import categoriesRouter from './categories/index.js'
-import categoryByIdRouter from './categories/[id].js'
+import categoryByIdRouter from './categories/_id.js'
 import usersRouter from './users/index.js'
 
 const app = express()
