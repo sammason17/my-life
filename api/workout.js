@@ -200,7 +200,9 @@ router.delete('/body-areas/:id', async (req, res) => {
 router.get('/exercises', async (req, res) => {
   try {
     const exercises = await prisma.exercise.findMany({
-      where: { ownerId: req.user.userId },
+      // NOTE: exercise library is intentionally shared across all users so anyone
+      // can build plans from a common pool. Re-add `where: { ownerId: req.user.userId }`
+      // here if per-user private libraries are needed in future.
       include: exerciseInclude,
       orderBy: { name: 'asc' },
     })
@@ -218,7 +220,9 @@ router.get('/exercises/:id', async (req, res) => {
       include: exerciseInclude,
     })
     if (!exercise) return res.status(404).json({ error: 'Not found' })
-    if (exercise.ownerId !== req.user.userId) return res.status(403).json({ error: 'Forbidden' })
+    // NOTE: ownership check removed — exercise library is shared across all users.
+    // Re-add `if (exercise.ownerId !== req.user.userId) return res.status(403)...`
+    // if per-user private libraries are needed in future.
     res.json(shapeExercise(exercise))
   } catch (err) {
     console.error('[GET /workout/exercises/:id]', err)

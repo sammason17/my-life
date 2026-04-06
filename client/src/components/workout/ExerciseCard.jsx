@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ExerciseCard({ exercise, onEdit, onDelete }) {
+  const { user } = useAuth()
+  const isOwner = exercise.ownerId === user?.userId
+
   return (
     <div className="card p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
@@ -10,7 +14,7 @@ export default function ExerciseCard({ exercise, onEdit, onDelete }) {
         >
           {exercise.name}
         </Link>
-        <div className="flex gap-1 flex-shrink-0">
+        {isOwner && <div className="flex gap-1 flex-shrink-0">
           <button
             onClick={() => onEdit(exercise)}
             className="p-1 text-gray-400 hover:text-gray-700 transition-colors"
@@ -31,7 +35,7 @@ export default function ExerciseCard({ exercise, onEdit, onDelete }) {
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
-        </div>
+        </div>}
       </div>
 
       {exercise.categories.length > 0 && (

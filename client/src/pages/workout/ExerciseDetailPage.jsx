@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import { useExercise, useUpdateExercise, useDeleteExercise } from '../../hooks/useWorkout'
 import VideoEmbed from '../../components/workout/VideoEmbed'
 import ExerciseModal from '../../components/workout/ExerciseModal'
@@ -7,6 +8,7 @@ import ExerciseModal from '../../components/workout/ExerciseModal'
 export default function ExerciseDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const { data: exercise, isLoading } = useExercise(id)
   const updateExercise = useUpdateExercise()
   const deleteExercise = useDeleteExercise()
@@ -45,17 +47,19 @@ export default function ExerciseDetailPage() {
 
       <div className="flex items-start justify-between gap-3 mb-5">
         <h1 className="text-xl font-bold text-gray-900">{exercise.name}</h1>
-        <div className="flex gap-2">
-          <button onClick={() => setEditing(true)} className="btn-secondary text-sm">
-            Edit
-          </button>
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            Delete
-          </button>
-        </div>
+        {exercise.ownerId === user?.userId && (
+          <div className="flex gap-2">
+            <button onClick={() => setEditing(true)} className="btn-secondary text-sm">
+              Edit
+            </button>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Video */}
