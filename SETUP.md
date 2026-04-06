@@ -95,19 +95,22 @@ Login and register endpoints are rate-limited to **10 requests per IP per 15 min
 
 > **Vercel note:** The rate limiter uses an in-memory store, so counters reset per serverless function instance. It works reliably in local development and provides partial protection in production. Vercel's built-in network-layer DDoS protection handles large volumetric attacks in production.
 
+### Registration
+Signup requires a `REGISTRATION_CODE` env var — only people with the code can create an account.
+
 ---
 
-### Apple Calendar / ICS feed
+## Apple Calendar
 
-Each user can subscribe to a live ICS feed of their tasks (tasks with due dates only). To set it up:
+Each user can subscribe to a live ICS feed of their tasks with due dates. To set it up:
 
 1. Go to **Settings** in the app
 2. Click **Get calendar link**
 3. Click **Subscribe in Apple Calendar** — iOS/macOS will prompt to confirm
 
-The feed URL uses a signed, long-lived token (1 year). Tasks appear as all-day events on their due date. Apple Calendar refreshes the feed roughly every hour; you can also pull to refresh manually.
+Tasks appear as all-day events on their due date. Apple Calendar refreshes roughly every hour; pull to refresh to force it. Works with any ICS-compatible app (Apple Calendar, Google Calendar, Outlook).
 
-The feed works with any ICS-compatible calendar app (Apple Calendar, Google Calendar, Outlook).
+The feed token is a signed JWT valid for 1 year. Generate a new one from Settings at any time.
 
 ---
 
@@ -115,18 +118,26 @@ The feed works with any ICS-compatible calendar app (Apple Calendar, Google Cale
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | /api/auth/register | No | Register (requires invite code) · rate limited |
+| POST | /api/auth/register | No | Register with invite code · rate limited |
 | POST | /api/auth/login | No | Login → returns JWT · rate limited |
 | PUT | /api/auth/update-password | Yes | Change password |
 | GET | /api/users/me | Yes | Get own profile |
 | PUT | /api/users/me | Yes | Update name/email |
-| GET/POST | /api/tasks | Yes | List / create tasks |
+| GET/POST | /api/tasks | Yes | List (filterable) / create tasks |
 | GET/PUT/DELETE | /api/tasks/:id | Yes | Read / update / delete task |
 | GET/POST | /api/tasks/:id/updates | Yes | Notes log |
 | GET/POST | /api/tasks/:id/time-logs | Yes | Time logging |
-| GET/POST | /api/categories | Yes | List / create categories (with hierarchy) |
-| PUT/DELETE | /api/categories/:id | Yes | Manage category |
-| GET | /api/calendar/token | Yes | Generate a calendar feed token |
+| GET/POST | /api/categories | Yes | List top-level categories with nested children / create |
+| PUT/DELETE | /api/categories/:id | Yes | Update or delete category (deleting a parent orphans children) |
+| GET | /api/calendar/token | Yes | Generate a 1-year calendar feed token |
 | GET | /api/calendar/feed?token= | No* | ICS feed for calendar apps |
 
-*The calendar feed uses a signed token in the query string instead of a Bearer header, as calendar apps cannot send custom headers.
+*The calendar feed authenticates via a signed query-string token as calendar apps cannot send `Authorization` headers.
+
+### Task filtering (`GET /api/tasks`)
+| Param | Values | Notes |
+|-------|--------|-------|
+| `status` | `TODO`, `IN_PROGRESS`, `DONE` | |
+| `priority` | `LOW`, `MEDIUM`, `HIGH` | |
+| `categoryId` | category ID | Includes tasks tagged with any subcategory of that category |
+| `shared` | `true` / `false` | Filter shared vs own tasks |
