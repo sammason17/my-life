@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
+import workoutRouter from './workout.js'
 
 // ── Prisma ────────────────────────────────────────────────────────────────────
 const prisma = global.prisma ?? new PrismaClient()
@@ -68,6 +69,7 @@ async function getAccessibleCategory(id, userId) {
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use('/api/workout', workoutRouter)
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
 // Limits brute-force attempts on public auth endpoints.

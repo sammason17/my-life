@@ -22,6 +22,12 @@ model User {
   taskUpdates TaskUpdate[]
   timeLogs    TimeLog[]
 
+  // Workout module
+  exercises          Exercise[]         @relation("UserExercises")
+  exerciseCategories ExerciseCategory[] @relation("UserExerciseCategories")
+  bodyAreas          BodyArea[]         @relation("UserBodyAreas")
+  workoutPlans       WorkoutPlan[]      @relation("UserWorkoutPlans")
+
   @@map("users")
 }
 
@@ -120,4 +126,133 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+// ── Workout module ────────────────────────────────────────────────────────────
+
+enum DayType {
+  UPPER
+  LOWER
+  FULL_BODY
+  CARDIO
+  REST
+}
+
+model ExerciseCategory {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserExerciseCategories", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  exercises ExerciseCategoryLink[]
+
+  @@map("exercise_categories")
+}
+
+model BodyArea {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserBodyAreas", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  exercises ExerciseBodyAreaLink[]
+
+  @@map("body_areas")
+}
+
+model Exercise {
+  id        String   @id @default(cuid())
+  name      String
+  videoUrl  String?  @map("video_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserExercises", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  categories          ExerciseCategoryLink[]
+  bodyAreas           ExerciseBodyAreaLink[]
+  workoutDayExercises WorkoutDayExercise[]
+
+  @@map("exercises")
+}
+
+// Many-to-many: Exercise <-> ExerciseCategory
+model ExerciseCategoryLink {
+  exerciseId String @map("exercise_id")
+  categoryId String @map("category_id")
+
+  exercise Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  category ExerciseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, categoryId])
+  @@map("exercise_category_links")
+}
+
+// Many-to-many: Exercise <-> BodyArea
+model ExerciseBodyAreaLink {
+  exerciseId String @map("exercise_id")
+  bodyAreaId String @map("body_area_id")
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  bodyArea BodyArea @relation(fields: [bodyAreaId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, bodyAreaId])
+  @@map("exercise_body_area_links")
+}
+
+model WorkoutPlan {
+  id          String   @id @default(cuid())
+  name        String
+  daysPerWeek Int      @map("days_per_week")
+  isActive    Boolean  @default(false) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserWorkoutPlans", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  days WorkoutDay[]
+
+  @@map("workout_plans")
+}
+
+model WorkoutDay {
+  id        String  @id @default(cuid())
+  dayNumber Int     @map("day_number")
+  label     String?
+  dayType   DayType @map("day_type")
+
+  planId String      @map("plan_id")
+  plan   WorkoutPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  exercises WorkoutDayExercise[]
+
+  @@map("workout_days")
+}
+
+model WorkoutDayExercise {
+  id        String @id @default(cuid())
+  sortOrder Int    @map("sort_order")
+
+  targetSets   Int?   @map("target_sets")
+  targetReps   Int?   @map("target_reps")
+  targetWeight Float? @map("target_weight")
+
+  lastSets        Int?      @map("last_sets")
+  lastReps        Int?      @map("last_reps")
+  lastWeight      Float?    @map("last_weight")
+  lastPerformedAt DateTime? @map("last_performed_at")
+
+  dayId      String @map("day_id")
+  exerciseId String @map("exercise_id")
+
+  day      WorkoutDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  exercise Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@map("workout_day_exercises")
 }
