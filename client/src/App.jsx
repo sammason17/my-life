@@ -13,6 +13,7 @@ import ExerciseDetailPage from './pages/workout/ExerciseDetailPage'
 import PlanBuilderPage from './pages/workout/PlanBuilderPage'
 import ActiveWorkoutPage from './pages/workout/ActiveWorkoutPage'
 import DebtFlowPage from './pages/debt/DebtFlowPage'
+import BudgetDashboard from './pages/budget/BudgetDashboard'
 
 function RequireAuth({ children }) {
   const { user } = useAuth()
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="workout/plans/:id/edit" element={<PlanBuilderPage />} />
         <Route path="workout/active/:dayId" element={<ActiveWorkoutPage />} />
         <Route path="debt" element={<DebtFlowPage />} />
+        <Route path="budget" element={<BudgetDashboard />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -31,6 +31,14 @@ model User {
   // DebtFlow module
   debtCards          DebtCard[]         @relation("UserDebtCards")
 
+  // Budget module
+  budgetIncomes      BudgetIncome[]     @relation("UserBudgetIncomes")
+  budgetCategories   BudgetCategory[]   @relation("UserBudgetCategories")
+  budgetSharedBills  BudgetSharedBill[] @relation("UserBudgetSharedBills")
+  budgetExpenses     BudgetExpense[]    @relation("UserBudgetExpenses")
+  amexRecurring      AmexRecurring[]    @relation("UserAmexRecurring")
+  amexGroceryShops   AmexGroceryShop[]  @relation("UserAmexGrocery")
+
   @@map("users")
 }
 
@@ -291,4 +299,91 @@ model BalanceTransfer {
   card   DebtCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
   @@map("balance_transfers")
+}
+
+// ── Budget module ────────────────────────────────────────────────────────────
+
+model BudgetIncome {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Float
+  isSalary  Boolean  @default(false) @map("is_salary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserBudgetIncomes", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("budget_incomes")
+}
+
+model BudgetCategory {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#3b82f6")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserBudgetCategories", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  expenses    BudgetExpense[]
+  sharedBills BudgetSharedBill[]
+
+  @@map("budget_categories")
+}
+
+model BudgetSharedBill {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Float
+  myShare   Float    @default(0.5) @map("my_share")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  categoryId String? @map("category_id")
+  category   BudgetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserBudgetSharedBills", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("budget_shared_bills")
+}
+
+model BudgetExpense {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Float
+  isAmex    Boolean  @default(false) @map("is_amex")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  categoryId String? @map("category_id")
+  category   BudgetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserBudgetExpenses", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("budget_expenses")
+}
+
+model AmexRecurring {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Float
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserAmexRecurring", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("amex_recurring")
+}
+
+model AmexGroceryShop {
+  id              String   @id @default(cuid())
+  date            DateTime @default(now())
+  totalAmount     Float    @map("total_amount")
+  myPortionAmount Float    @map("my_portion_amount")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("UserAmexGrocery", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("amex_grocery_shops")
 }
